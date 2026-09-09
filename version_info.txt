@@ -16,12 +16,12 @@ VSVersionInfo(
         '040904B0',
         [StringStruct('CompanyName', 'Kabutopz'),
          StringStruct('FileDescription', 'Kabutopz Voice Protocol'),
-         StringStruct('FileVersion', '1.4.0.0'),
+         StringStruct('FileVersion', '1.5.0.0'),
          StringStruct('InternalName', 'KabutopzVoiceProtocol'),
          StringStruct('LegalCopyright', 'Copyright 2026 Kabutopz'),
          StringStruct('OriginalFilename', 'KabutopzVoiceProtocol.exe'),
          StringStruct('ProductName', 'Kabutopz Voice Protocol'),
-         StringStruct('ProductVersion', '1.4.0.0')])
+         StringStruct('ProductVersion', '1.5.0.0')])
     ]),
     VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]

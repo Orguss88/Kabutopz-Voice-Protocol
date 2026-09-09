@@ -258,7 +258,13 @@ Ship and commodity results come from the community-run Star Citizen Wiki API. Th
 
 ## Version
 
-Kabutopz Voice Protocol v1.4
+Kabutopz Voice Protocol v1.5
 Powered by the Community <3
 
 Future releases increment by 0.1: 1.0, 1.1, through 1.9, then 2.0.
+# v1.5
+
+- Added a top-right Voice Language selector for English, Spanish, Italian, Portuguese, Irish, Russian, French, and German. Selecting a language also translates the visible interface, page navigation, and How To/Mining reference text; translations are cached locally after the first online load.
+- Speech recognition now listens in the selected language and adds built-in native-language command phrases for core flight, combat, navigation, mining, and on-foot controls. Custom phrases remain editable on the **PHRASES** page.
+- Improved quiet-word capture at the end of a spoken command without adding wait time after ordinary speech.
+- Mining lookup now reads every listed mining body from the Star Citizen Wiki, including all Stanton results.

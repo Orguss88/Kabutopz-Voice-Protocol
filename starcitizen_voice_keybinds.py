@@ -42,17 +42,32 @@ from keybind_modifiers import apply_modifiers, modifier_state
 APP_DIR = Path.home() / ".star_citizen_voice_keybinds"
 SETTINGS_FILE = APP_DIR / "settings.json"
 COOLDOWN_SECONDS = 1.5
-APP_VERSION = "1.4"
+APP_VERSION = "1.5"
 COMMAND_SAMPLE_RATE = 16000
 COMMAND_VOICE_THRESHOLD = 450
+COMMAND_TRAILING_VOICE_THRESHOLD = 160
 COMMAND_END_SILENCE_SECONDS = 0.45
-COMMAND_MAX_CAPTURE_SECONDS = 2.6
+COMMAND_MAX_CAPTURE_SECONDS = 3.2
 COMMAND_PREROLL_CHUNKS = 8
 PAGE_ORDER = (
     "VOICE PROTOCOL", "HOW TO", "CUSTOMIZE", "PHRASES", "KEYBINDS",
     "CUSTOM WORDS", "COMPONENTS", "SHIP WEAPONS", "COMMODITIES", "MINING MODE", "SHIP FINDER",
     "GUIDES", "ANNOUNCEMENTS", "CREDIT",
 )
+
+# Google speech-recognition locale used for the microphone.  These codes let
+# the recognizer listen for the player's language instead of English sounds.
+LANGUAGE_OPTIONS = {
+    "English (United States)": "en-US",
+    "Spanish (Español)": "es-ES",
+    "Italian (Italiano)": "it-IT",
+    "Portuguese (Português)": "pt-BR",
+    "Irish (Gaeilge)": "ga-IE",
+    "Russian (Русский)": "ru-RU",
+    "French (Français)": "fr-FR",
+    "German (Deutsch)": "de-DE",
+}
+LANGUAGE_LABEL_BY_CODE = {code: label for label, code in LANGUAGE_OPTIONS.items()}
 
 # ---------------------------------------------------------------------------
 # ACTIONS
@@ -278,6 +293,110 @@ VOICE_OFF_PHRASES = {
     "computer disable",
 }
 
+VOICE_OFF_PHRASES_BY_LANGUAGE = {
+    "es-ES": {"computadora apaga", "computadora deja de escuchar", "computadora detener"},
+    "it-IT": {"computer spegni", "computer smetti di ascoltare", "computer fermati"},
+    "pt-BR": {"computador desligar", "computador pare de ouvir", "computador parar"},
+    "ga-IE": {"ríomhaire stop ag éisteacht", "ríomhaire stop"},
+    "ru-RU": {"компьютер выключись", "компьютер перестань слушать", "компьютер стоп"},
+    "fr-FR": {"ordinateur éteins-toi", "ordinateur arrête d'écouter", "ordinateur stop"},
+    "de-DE": {"computer ausschalten", "computer hör auf zuzuhören", "computer stopp"},
+}
+
+# Native-language defaults for the commands players use most often.  They are
+# added to a player's own editable phrase list, never replacing custom phrases.
+LANGUAGE_COMMAND_PHRASES = {
+    "es-ES": {
+        "ship_power_on": ["encender nave"], "ship_power_off": ["apagar nave"],
+        "engines_on": ["encender motores"], "engines_off": ["apagar motores"],
+        "lights_on": ["encender luces"], "lights_off": ["apagar luces"],
+        "gear_toggle": ["tren de aterrizaje"], "contact_atc": ["contactar atc", "solicitar aterrizaje"],
+        "quantum_toggle": ["modo cuántico"], "quantum_engage": ["saltar cuántico"],
+        "power_shields": ["energía a escudos"], "power_weapons": ["energía a armas"],
+        "cruise_control": ["control de crucero"], "flight_mode": ["modo de vuelo"],
+        "mining_mode": ["modo minería"], "scan_mode": ["modo escáner"],
+        "target_ship": ["seleccionar nave"], "switch_target": ["cambiar objetivo"],
+        "open_inventory": ["abrir inventario"], "mobiglas": ["abrir mobiglas"], "open_map": ["abrir mapa"],
+        "reload": ["recargar"], "interact": ["interactuar"], "jump": ["saltar"], "crouch": ["agacharse"], "sprint": ["correr"],
+    },
+    "it-IT": {
+        "ship_power_on": ["accendi nave"], "ship_power_off": ["spegni nave"],
+        "engines_on": ["accendi motori"], "engines_off": ["spegni motori"],
+        "lights_on": ["accendi luci"], "lights_off": ["spegni luci"],
+        "gear_toggle": ["carrello di atterraggio"], "contact_atc": ["contatta atc", "richiedi atterraggio"],
+        "quantum_toggle": ["modalità quantica"], "quantum_engage": ["salto quantico"],
+        "power_shields": ["energia agli scudi"], "power_weapons": ["energia alle armi"],
+        "cruise_control": ["controllo di crociera"], "flight_mode": ["modalità volo"],
+        "mining_mode": ["modalità estrazione"], "scan_mode": ["modalità scansione"],
+        "target_ship": ["seleziona nave"], "switch_target": ["cambia bersaglio"],
+        "open_inventory": ["apri inventario"], "mobiglas": ["apri mobiglas"], "open_map": ["apri mappa"],
+        "reload": ["ricarica"], "interact": ["interagisci"], "jump": ["salta"], "crouch": ["accovacciati"], "sprint": ["corri"],
+    },
+    "pt-BR": {
+        "ship_power_on": ["ligar nave"], "ship_power_off": ["desligar nave"],
+        "engines_on": ["ligar motores"], "engines_off": ["desligar motores"],
+        "lights_on": ["ligar luzes"], "lights_off": ["desligar luzes"],
+        "gear_toggle": ["trem de pouso"], "contact_atc": ["contatar atc", "solicitar pouso"],
+        "quantum_toggle": ["modo quântico"], "quantum_engage": ["salto quântico"],
+        "power_shields": ["energia para escudos"], "power_weapons": ["energia para armas"],
+        "cruise_control": ["controle de cruzeiro"], "flight_mode": ["modo de voo"],
+        "mining_mode": ["modo mineração"], "scan_mode": ["modo escaneamento"],
+        "target_ship": ["selecionar nave"], "switch_target": ["mudar alvo"],
+        "open_inventory": ["abrir inventário"], "mobiglas": ["abrir mobiglas"], "open_map": ["abrir mapa"],
+        "reload": ["recarregar"], "interact": ["interagir"], "jump": ["pular"], "crouch": ["agachar"], "sprint": ["correr"],
+    },
+    "ga-IE": {
+        "ship_power_on": ["cumhacht na loinge ar siúl"], "ship_power_off": ["cumhacht na loinge as"],
+        "engines_on": ["innill ar siúl"], "engines_off": ["innill as"],
+        "lights_on": ["soilse ar siúl"], "lights_off": ["soilse as"],
+        "gear_toggle": ["trealamh tuirlingthe"], "contact_atc": ["déan teagmháil le atc"],
+        "quantum_toggle": ["mód candamach"], "quantum_engage": ["léim chandamach"],
+        "mining_mode": ["mód mianadóireachta"], "scan_mode": ["mód scanadh"],
+        "target_ship": ["roghnaigh long"], "switch_target": ["athraigh sprioc"],
+        "open_inventory": ["oscail fardal"], "open_map": ["oscail léarscáil"],
+        "reload": ["athluchtaigh"], "interact": ["idirghníomhaigh"], "jump": ["léim"], "crouch": ["crom síos"], "sprint": ["rith"],
+    },
+    "ru-RU": {
+        "ship_power_on": ["включить корабль"], "ship_power_off": ["выключить корабль"],
+        "engines_on": ["включить двигатели"], "engines_off": ["выключить двигатели"],
+        "lights_on": ["включить свет"], "lights_off": ["выключить свет"],
+        "gear_toggle": ["шасси"], "contact_atc": ["связаться с диспетчером", "запросить посадку"],
+        "quantum_toggle": ["квантовый режим"], "quantum_engage": ["квантовый прыжок"],
+        "power_shields": ["энергия на щиты"], "power_weapons": ["энергия на оружие"],
+        "cruise_control": ["круиз контроль"], "flight_mode": ["режим полета"],
+        "mining_mode": ["режим добычи"], "scan_mode": ["режим сканирования"],
+        "target_ship": ["выбрать корабль"], "switch_target": ["сменить цель"],
+        "open_inventory": ["открыть инвентарь"], "mobiglas": ["открыть мобиглас"], "open_map": ["открыть карту"],
+        "reload": ["перезарядить"], "interact": ["взаимодействовать"], "jump": ["прыжок"], "crouch": ["присесть"], "sprint": ["бежать"],
+    },
+    "fr-FR": {
+        "ship_power_on": ["allumer le vaisseau"], "ship_power_off": ["éteindre le vaisseau"],
+        "engines_on": ["allumer les moteurs"], "engines_off": ["éteindre les moteurs"],
+        "lights_on": ["allumer les lumières"], "lights_off": ["éteindre les lumières"],
+        "gear_toggle": ["train d'atterrissage"], "contact_atc": ["contacter atc", "demander l'atterrissage"],
+        "quantum_toggle": ["mode quantique"], "quantum_engage": ["saut quantique"],
+        "power_shields": ["énergie aux boucliers"], "power_weapons": ["énergie aux armes"],
+        "cruise_control": ["régulateur de vitesse"], "flight_mode": ["mode de vol"],
+        "mining_mode": ["mode minage"], "scan_mode": ["mode scan"],
+        "target_ship": ["sélectionner vaisseau"], "switch_target": ["changer de cible"],
+        "open_inventory": ["ouvrir inventaire"], "mobiglas": ["ouvrir mobiglas"], "open_map": ["ouvrir carte"],
+        "reload": ["recharger"], "interact": ["interagir"], "jump": ["sauter"], "crouch": ["s'accroupir"], "sprint": ["courir"],
+    },
+    "de-DE": {
+        "ship_power_on": ["schiff einschalten"], "ship_power_off": ["schiff ausschalten"],
+        "engines_on": ["triebwerke einschalten"], "engines_off": ["triebwerke ausschalten"],
+        "lights_on": ["lichter einschalten"], "lights_off": ["lichter ausschalten"],
+        "gear_toggle": ["fahrwerk"], "contact_atc": ["atc kontaktieren", "landung anfordern"],
+        "quantum_toggle": ["quantummodus"], "quantum_engage": ["quantensprung"],
+        "power_shields": ["energie zu schilden"], "power_weapons": ["energie zu waffen"],
+        "cruise_control": ["tempomat"], "flight_mode": ["flugmodus"],
+        "mining_mode": ["bergbau modus"], "scan_mode": ["scan modus"],
+        "target_ship": ["schiff auswählen"], "switch_target": ["ziel wechseln"],
+        "open_inventory": ["inventar öffnen"], "mobiglas": ["mobiglas öffnen"], "open_map": ["karte öffnen"],
+        "reload": ["nachladen"], "interact": ["interagieren"], "jump": ["springen"], "crouch": ["ducken"], "sprint": ["rennen"],
+    },
+}
+
 THANK_YOU_COMPUTER_PHRASES = {
     "thank you computer",
     "thanks computer",
@@ -492,8 +611,17 @@ class VoiceKeybindApp(tk.Tk):
         self.support_button_photo = None
         self.app_icon_photo = None
         self.history_watermark_source = None
+        self.ui_source_text = {}
+        self.ui_source_documents = {}
+        self.ui_translation_cache = {}
 
         self.settings = self._load_settings()
+        cached_translations = self.settings.get("ui_translation_cache", {})
+        if isinstance(cached_translations, dict):
+            self.ui_translation_cache = cached_translations
+        self.recognition_language = str(self.settings.get("recognition_language", "en-US"))
+        if self.recognition_language not in LANGUAGE_LABEL_BY_CODE:
+            self.recognition_language = "en-US"
         self.theme = self._load_theme()
         self._load_watermark_source()
         self.custom_actions = self.settings.get("custom_actions", [])
@@ -536,6 +664,10 @@ class VoiceKeybindApp(tk.Tk):
         self.refresh_devices()
         self._refresh_tts_voices()
         self.apply_theme()
+        self._capture_ui_source_text()
+        self.page_display_names = {page: page for page in PAGE_ORDER}
+        if self.recognition_language != "en-US":
+            self._begin_interface_translation()
         self.show_page("VOICE PROTOCOL")
         self.after(50, self._drain_events)
 
@@ -553,6 +685,7 @@ class VoiceKeybindApp(tk.Tk):
             "voice_feedback": True,
             "tts_volume": 80,
             "tts_voice": "",
+            "recognition_language": "en-US",
             "voice_toggle_hotkey": "",
             "keybinds": {},
             "custom_actions": [],
@@ -622,6 +755,12 @@ class VoiceKeybindApp(tk.Tk):
             if not isinstance(vals, list):
                 vals = DEFAULT_PHRASES.get(action_id, [])
             merged[action_id] = [str(x).strip().lower() for x in vals if str(x).strip()]
+        for action_id, phrases in LANGUAGE_COMMAND_PHRASES.get(self.recognition_language, {}).items():
+            merged.setdefault(action_id, [])
+            for phrase in phrases:
+                normalized = str(phrase).strip().lower()
+                if normalized and normalized not in merged[action_id]:
+                    merged[action_id].append(normalized)
         return merged
 
     def _load_keybinds(self):
@@ -639,6 +778,8 @@ class VoiceKeybindApp(tk.Tk):
             self.settings["voice_feedback"] = bool(self.voice_feedback_var.get())
             self.settings["tts_volume"] = int(self.tts_volume_var.get())
             self.settings["tts_voice"] = self.tts_voice_var.get()
+            self.settings["recognition_language"] = self.recognition_language
+            self.settings["ui_translation_cache"] = self.ui_translation_cache
             if hasattr(self, "voice_toggle_hotkey_var"):
                 self.settings["voice_toggle_hotkey"] = (
                     self.voice_toggle_hotkey_var.get().strip().lower()
@@ -652,6 +793,139 @@ class VoiceKeybindApp(tk.Tk):
             )
         except Exception:
             pass
+
+    def _language_selected(self, *_):
+        """Apply a recognition locale immediately; no listener restart is needed."""
+        selected = self.language_var.get()
+        code = LANGUAGE_OPTIONS.get(selected, "en-US")
+        if code == self.recognition_language:
+            return
+        self.recognition_language = code
+        self.phrases = self._load_phrases()
+        self._save_settings()
+        self._begin_interface_translation()
+        if hasattr(self, "voice_off_help"):
+            examples = VOICE_OFF_PHRASES_BY_LANGUAGE.get(code)
+            phrase = sorted(examples)[0] if examples else "computer turn off"
+            self.voice_off_help.configure(text=f'Voice off: "{phrase}"')
+        if hasattr(self, "status_label"):
+            self._history_add(f"Voice language changed to {selected}.")
+
+    def _capture_ui_source_text(self):
+        """Remember English UI strings so language changes are reversible."""
+        for widget in self._walk_widgets():
+            if not isinstance(widget, (tk.Label, tk.Button, tk.Checkbutton)):
+                continue
+            try:
+                value = widget.cget("text")
+            except tk.TclError:
+                continue
+            if isinstance(value, str) and value.strip():
+                self.ui_source_text[widget] = value
+
+        # These are the two read-only, long-form pages. Editable fields and
+        # live search results deliberately stay in the player's own wording.
+        for widget in (getattr(self, "how_to_guide", None), getattr(self, "mining_table", None)):
+            if widget is None:
+                continue
+            try:
+                self.ui_source_documents[widget] = widget.get("1.0", "end-1c")
+            except tk.TclError:
+                pass
+
+    def _begin_interface_translation(self):
+        """Translate interface text off the Tk thread, with local caching."""
+        language = self.recognition_language
+        if language == "en-US":
+            self.events.put(("ui_translations", (language, {})))
+            return
+
+        source_texts = set(self.ui_source_text.values()) | set(self.ui_source_documents.values()) | set(PAGE_ORDER)
+        cached = self.ui_translation_cache.get(language, {})
+        missing = [text for text in source_texts if text and text not in cached]
+        if not missing:
+            self.events.put(("ui_translations", (language, cached)))
+            return
+        threading.Thread(
+            target=self._interface_translation_worker,
+            args=(language, missing),
+            daemon=True,
+        ).start()
+
+    @staticmethod
+    def _translate_interface_batch(texts, target_language):
+        """Translate a small batch so language changes do not spam requests."""
+        separator = "\n[[KVP_TEXT_SPLIT]]\n"
+        text = separator.join(texts)
+        params = urllib.parse.urlencode({
+            "client": "gtx", "sl": "en", "tl": target_language.split("-", 1)[0], "dt": "t", "q": text,
+        })
+        request = urllib.request.Request(
+            f"https://translate.googleapis.com/translate_a/single?{params}",
+            headers={"User-Agent": "KabutopzVoiceProtocol/1.5"},
+        )
+        with urllib.request.urlopen(request, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        translated = "".join(part[0] for part in payload[0] if part and part[0])
+        values = translated.split(separator)
+        if len(values) != len(texts):
+            raise ValueError("Translation response could not be split safely.")
+        return [value.strip() for value in values]
+
+    def _interface_translation_worker(self, language, missing):
+        cached = dict(self.ui_translation_cache.get(language, {}))
+        batches = []
+        batch = []
+        batch_size = 0
+        for text in missing:
+            # Keep URLs well below browser/proxy size limits, including the
+            # long How To and Mining reference documents.
+            if batch and batch_size + len(text) > 3200:
+                batches.append(batch)
+                batch, batch_size = [], 0
+            batch.append(text)
+            batch_size += len(text) + 24
+        if batch:
+            batches.append(batch)
+
+        for batch in batches:
+            try:
+                translated = self._translate_interface_batch(batch, language)
+                for source, result in zip(batch, translated):
+                    if result:
+                        cached[source] = result
+                time.sleep(0.35)
+            except Exception:
+                # The app remains completely usable in English if a network
+                # translation is unavailable. Failed text stays uncached so a
+                # later language selection can retry it.
+                continue
+        self.events.put(("ui_translations", (language, cached)))
+
+    def _apply_interface_translation(self, language, translations):
+        if language != self.recognition_language:
+            return
+        for widget, source in list(self.ui_source_text.items()):
+            try:
+                widget.configure(text=translations.get(source, source))
+            except tk.TclError:
+                self.ui_source_text.pop(widget, None)
+        for widget, source in list(self.ui_source_documents.items()):
+            try:
+                widget.configure(state="normal")
+                widget.delete("1.0", tk.END)
+                widget.insert("1.0", translations.get(source, source))
+                widget.configure(state="disabled")
+            except tk.TclError:
+                self.ui_source_documents.pop(widget, None)
+
+        self.ui_translation_cache[language] = translations
+        self.page_display_names = {page: translations.get(page, page) for page in PAGE_ORDER}
+        if hasattr(self, "page_combo"):
+            self.page_combo["values"] = [self.page_display_names[page] for page in PAGE_ORDER]
+            current = getattr(self, "current_page_name", "VOICE PROTOCOL")
+            self.page_var.set(self.page_display_names[current])
+        self._save_settings()
 
     # -------------------- Kabutopz watermark --------------------
     def _load_watermark_source(self):
@@ -1066,6 +1340,26 @@ class VoiceKeybindApp(tk.Tk):
             fallback.pack(padx=10, pady=(0, 8))
             fallback.bind("<Button-1>", self._open_buy_me_a_coffee)
 
+        self.language_var = tk.StringVar(
+            value=LANGUAGE_LABEL_BY_CODE[self.recognition_language]
+        )
+        language_label = tk.Label(
+            nav, text="VOICE LANGUAGE",
+            font=("Segoe UI", 8, "bold"),
+            fg=t["muted"], bg=t["bg"],
+        )
+        self._track(language_label, "bg", "muted").pack(anchor="e", pady=(0, 5))
+        self.language_combo = ttk.Combobox(
+            nav,
+            textvariable=self.language_var,
+            values=list(LANGUAGE_OPTIONS),
+            state="readonly",
+            style="Dark.TCombobox",
+            width=24,
+        )
+        self.language_combo.pack(pady=(0, 10))
+        self.language_combo.bind("<<ComboboxSelected>>", self._language_selected)
+
         page_label = tk.Label(
             nav, text="PAGE",
             font=("Segoe UI", 8, "bold"),
@@ -1085,7 +1379,7 @@ class VoiceKeybindApp(tk.Tk):
         self.page_combo.pack()
         self.page_combo.bind(
             "<<ComboboxSelected>>",
-            lambda e: self.show_page(self.page_var.get())
+            lambda e: self.show_page(self._page_name_from_display(self.page_var.get()))
         )
 
         page_tabs = self._track(tk.Frame(self, bg=t["bg"]), "bg")
@@ -1125,9 +1419,11 @@ class VoiceKeybindApp(tk.Tk):
         webbrowser.open_new_tab(BUY_ME_A_COFFEE_URL)
 
     def show_page(self, name):
+        name = self._page_name_from_display(name)
         if name not in PAGE_ORDER:
             name = "VOICE PROTOCOL"
-        self.page_var.set(name)
+        self.current_page_name = name
+        self.page_var.set(getattr(self, "page_display_names", {}).get(name, name))
         for page in (
             self.voice_page,
             self.how_to_page,
@@ -1163,6 +1459,12 @@ class VoiceKeybindApp(tk.Tk):
         }
         pages.get(name, self.voice_page).pack(fill="both", expand=True)
         self._update_page_tabs(name)
+
+    def _page_name_from_display(self, display_name):
+        for page, translated in getattr(self, "page_display_names", {}).items():
+            if display_name == translated:
+                return page
+        return display_name
 
     def _update_page_tabs(self, selected):
         if not hasattr(self, "page_tab_buttons"):
@@ -1293,12 +1595,13 @@ class VoiceKeybindApp(tk.Tk):
         )
         self.listen_button.pack(fill="x", padx=18, pady=(0, 12))
 
-        self._label(
+        self.voice_off_help = self._label(
             control,
-            'Voice off: "computer turn off"',
+            'Voice off: "' + sorted(VOICE_OFF_PHRASES_BY_LANGUAGE.get(self.recognition_language, {"computer turn off"}))[0] + '"',
             ("Segoe UI", 8),
             muted=True,
-        ).pack(anchor="w", padx=18, pady=(0, 10))
+        )
+        self.voice_off_help.pack(anchor="w", padx=18, pady=(0, 10))
 
         self._label(
             control,
@@ -3311,10 +3614,21 @@ class VoiceKeybindApp(tk.Tk):
         )
         find_locations.pack(side="left", padx=(10, 0))
 
-        self.mining_location_result = self._label(
-            inner, "", ("Segoe UI", 9), muted=True
+        self.mining_location_status = self._label(
+            inner, "Searches every listed mining body, including Stanton.", ("Segoe UI", 8), muted=True
         )
-        self.mining_location_result.pack(anchor="w", fill="x", pady=(0, 10))
+        self.mining_location_status.pack(anchor="w", fill="x", pady=(0, 5))
+        location_results_frame = self._track(tk.Frame(inner, bg=t["panel2"]), "panel2")
+        location_results_frame.pack(fill="x", pady=(0, 10))
+        self.mining_location_result = tk.Text(
+            location_results_frame, height=6, bg=t["panel2"], fg=t["text"],
+            relief="flat", bd=0, wrap="word", padx=10, pady=8,
+            font=("Cascadia Mono", 8), state="disabled",
+        )
+        self.mining_location_result.pack(side="left", fill="both", expand=True)
+        location_scroll = ttk.Scrollbar(location_results_frame, command=self.mining_location_result.yview)
+        location_scroll.pack(side="right", fill="y")
+        self.mining_location_result.configure(yscrollcommand=location_scroll.set)
 
         self.mining_table = tk.Text(
             inner,
@@ -3482,7 +3796,7 @@ class VoiceKeybindApp(tk.Tk):
         if not resource:
             return
 
-        self.mining_location_result.configure(text="Searching...")
+        self.mining_location_status.configure(text="Searching all listed mining locations…")
         threading.Thread(
             target=self._mining_location_worker,
             args=(resource, False),
@@ -3493,84 +3807,46 @@ class VoiceKeybindApp(tk.Tk):
         try:
             locations = self._fetch_mining_locations(resource)
             if locations:
-                shown = locations[:10]
-                answer = (
-                    f"{resource.title()} can be mined at "
-                    + ", ".join(shown)
-                    + "."
-                )
+                answer = f"{resource.title()} — {len(locations)} listed mining location(s):\n" + "\n".join(locations)
+                spoken = locations[:5]
+                spoken_answer = f"I found {len(locations)} listed locations for {resource.title()}. The first locations are " + ", ".join(spoken) + "."
             else:
                 answer = f"I could not find mining locations for {resource.title()}."
+                spoken_answer = answer
         except Exception:
             fallback = MINING_LOCATION_FALLBACK.get(resource, [])
             if fallback:
-                shown = fallback[:10]
-                answer = (
-                    f"Live lookup failed. Known {resource.title()} mining hotspots include "
-                    + ", ".join(shown)
-                    + "."
-                )
+                answer = f"Live lookup failed. Known {resource.title()} mining hotspots:\n" + "\n".join(fallback)
+                spoken_answer = f"Live lookup failed. Known {resource.title()} mining hotspots include " + ", ".join(fallback[:5]) + "."
             else:
                 answer = f"I could not find mining locations for {resource.title()}."
+                spoken_answer = answer
 
         self.events.put(("mining_locations", (resource, answer)))
         if speak:
-            self._speak(answer, force=True)
+            self._speak(spoken_answer, force=True)
 
     def _fetch_mining_locations(self, resource):
-        url = (
-            f"{SHIP_API_BASE}/commodities/"
-            + urllib.parse.quote(resource)
+        aliases = {"aluminium": "Aluminum", "aluminum": "Aluminum"}
+        title = aliases.get(resource.lower(), resource.strip().title())
+        request = urllib.request.Request(
+            f"https://starcitizen.tools/{urllib.parse.quote(title.replace(' ', '_'))}",
+            headers={"User-Agent": "KabutopzVoiceProtocol/1.5"},
         )
-        payload = self._http_json(url)
-        data = payload.get("data", payload)
+        with urllib.request.urlopen(request, timeout=20) as response:
+            content = response.read().decode("utf-8", errors="replace")
 
-        names = []
-
-        def walk(obj, path=""):
-            if isinstance(obj, dict):
-                lower_path = path.lower()
-
-                # Commodity location objects usually contain names plus type/system metadata.
-                candidate = None
-                for key in ("name", "display_name", "location_name"):
-                    value = obj.get(key)
-                    if isinstance(value, str) and value.strip():
-                        candidate = value.strip()
-                        break
-
-                if candidate and (
-                    "location" in lower_path
-                    or "starmap" in lower_path
-                    or "resource" in lower_path
-                ):
-                    bad = {
-                        resource.lower(),
-                        "mineable",
-                        "mining",
-                    }
-                    if candidate.lower() not in bad and candidate not in names:
-                        names.append(candidate)
-
-                for k, v in obj.items():
-                    walk(v, f"{path}.{k}")
-            elif isinstance(obj, list):
-                for i, v in enumerate(obj):
-                    walk(v, f"{path}[{i}]")
-
-        walk(data, "data")
-
-        # If the API schema changes and generic traversal returns too many nested names,
-        # prefer plausible planetary/moon/ring names by de-duplicating while preserving order.
-        cleaned = []
-        for name in names:
-            if name not in cleaned and len(name) <= 80:
-                cleaned.append(name)
-
-        if resource == "iron" and not cleaned:
-            cleaned = list(MINING_LOCATION_FALLBACK["iron"])
-
-        return cleaned
+        locations = []
+        for caption, table in re.findall(r"<caption>(.*?)</caption>\s*<tbody>(.*?)</tbody>", content, re.IGNORECASE | re.DOTALL):
+            system = re.sub(r"\s+System\s*$", "", re.sub(r"<[^>]+>", "", caption)).strip()
+            for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table, re.IGNORECASE | re.DOTALL):
+                cells = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", cell)).strip() for cell in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.IGNORECASE | re.DOTALL)]
+                if len(cells) < 4 or cells[0].lower() == "body":
+                    continue
+                location = f"{system}: {cells[0]} ({cells[1]}) — {cells[2]} • {cells[3]}"
+                if location not in locations:
+                    locations.append(location)
+        return locations
 
     # -------------------- SHIP FINDER page --------------------
     def _build_ship_finder_page(self):
@@ -4392,6 +4668,7 @@ class VoiceKeybindApp(tk.Tk):
     def _extract_mining_location_question(self, heard):
         text = heard.lower().strip()
         patterns = [
+            r"where to mine (.+)",
             r"where can i mine (.+)",
             r"where do i mine (.+)",
             r"where is (.+) mined",
@@ -4572,7 +4849,11 @@ class VoiceKeybindApp(tk.Tk):
                             continue
 
                         chunks.append(chunk)
-                        if level >= COMMAND_VOICE_THRESHOLD:
+                        # A clear first syllable starts a command, while a
+                        # lower continuation threshold keeps quiet final words
+                        # (such as "aluminium") from being cut off. This does
+                        # not add idle delay after normal speech.
+                        if level >= COMMAND_TRAILING_VOICE_THRESHOLD:
                             last_voice_at = now
 
                         if (
@@ -4605,7 +4886,8 @@ class VoiceKeybindApp(tk.Tk):
 
                     try:
                         heard = self.recognizer.recognize_google(
-                            audio
+                            audio,
+                            language=self.recognition_language,
                         ).lower().strip()
                     except sr.UnknownValueError:
                         continue
@@ -4627,7 +4909,10 @@ class VoiceKeybindApp(tk.Tk):
                         continue
 
                     # Hard voice-off.
-                    if normalized in VOICE_OFF_PHRASES:
+                    voice_off_phrases = VOICE_OFF_PHRASES | VOICE_OFF_PHRASES_BY_LANGUAGE.get(
+                        self.recognition_language, set()
+                    )
+                    if normalized in voice_off_phrases:
                         self._speak(
                             "Command confirmed. Thank you for flying with me.",
                             force=True,
@@ -4779,6 +5064,9 @@ class VoiceKeybindApp(tk.Tk):
                     self._history_add(
                         value, "info"
                     )
+                elif kind == "ui_translations":
+                    language, translations = value
+                    self._apply_interface_translation(language, translations)
                 elif kind == "mining_reverse":
                     self._history_add(
                         f"Mining lookup: {value}"
@@ -4793,7 +5081,11 @@ class VoiceKeybindApp(tk.Tk):
                         f"Mining locations: {answer}"
                     )
                     if hasattr(self, "mining_location_result"):
-                        self.mining_location_result.configure(text=answer)
+                        self.mining_location_result.configure(state="normal")
+                        self.mining_location_result.delete("1.0", tk.END)
+                        self.mining_location_result.insert("1.0", answer)
+                        self.mining_location_result.configure(state="disabled")
+                        self.mining_location_status.configure(text="Showing every location currently listed by the Star Citizen Wiki.")
                 elif kind == "ship_search_result":
                     self._set_ship_results(value)
                 elif kind == "commodity_results":
