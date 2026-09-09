@@ -5,6 +5,13 @@ cd /d "%~dp0"
 
 set "BUILD_PYTHON=build\.venv\Scripts\python.exe"
 
+tasklist /FI "IMAGENAME eq KabutopzVoiceProtocol.exe" /NH | find /I "KabutopzVoiceProtocol.exe" >nul
+if not errorlevel 1 (
+    echo ERROR: Kabutopz Voice Protocol is still running.
+    echo Close the app before building so its portable runtime folder is not damaged.
+    exit /b 1
+)
+
 echo ==============================================
 echo   KABUTOPZ VOICE PROTOCOL v1.5
 echo   Clean folder release - no self-extracting overlay
