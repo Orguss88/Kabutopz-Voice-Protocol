@@ -5,6 +5,7 @@ No filesystem polling threads, UI, or game process are started on import.
 """
 from dataclasses import dataclass
 from pathlib import Path
+import os
 import re
 
 
@@ -45,7 +46,7 @@ class GameLogWatcher:
     def poll(self) -> list[LogEvent]:
         try:
             with self.path.open("rb") as stream:
-                stat = stream.stat()
+                stat = os.fstat(stream.fileno())
                 identity = (stat.st_dev, stat.st_ino)
                 if self._identity != identity or stat.st_size < self.offset:
                     self.offset = 0
