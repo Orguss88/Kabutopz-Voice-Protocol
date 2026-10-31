@@ -38,6 +38,7 @@ from commodity_service import search_commodity, suggest_commodities
 from component_service import search_component, search_ship_weapon, suggest_components, suggest_ship_weapons
 from keybind_modifiers import apply_modifiers, modifier_state
 from phrase_matcher import build_phrase_pairs
+from command_router import Command, execute_command
 
 
 APP_DIR = Path.home() / ".star_citizen_voice_keybinds"
@@ -5027,16 +5028,16 @@ class VoiceKeybindApp(tk.Tk):
 
     @staticmethod
     def _run_action(action_type, key, hold_seconds):
-        if action_type == "tap":
-            tap_keybind(key)
-        elif action_type == "hold":
-            hold_keybind(key, hold_seconds)
-        elif action_type == "wheel":
-            scroll_wheel(key)
-        elif action_type == "combo_mouse":
-            tap_mouse_combo(key)
-        else:
+        # Keep the legacy signature and error behavior while delegating dispatch.
+        handlers = {
+            "tap": tap_keybind,
+            "hold": hold_keybind,
+            "wheel": scroll_wheel,
+            "combo_mouse": tap_mouse_combo,
+        }
+        if action_type not in handlers:
             raise ValueError(action_type)
+        execute_command(Command("", action_type, key, hold_seconds), handlers)
 
     def _drain_events(self):
         try:
