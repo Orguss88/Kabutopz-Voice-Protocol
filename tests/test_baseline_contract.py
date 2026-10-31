@@ -3,6 +3,8 @@ import ast
 from pathlib import Path
 import unittest
 
+from app_config import APP_VERSION
+
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "starcitizen_voice_keybinds.py"
 
@@ -13,7 +15,7 @@ def load_constants():
     for node in tree.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name) and target.id in {"ACTIONS", "DEFAULT_PHRASES", "APP_VERSION"}:
+                if isinstance(target, ast.Name) and target.id in {"ACTIONS", "DEFAULT_PHRASES"}:
                     assignments[target.id] = ast.literal_eval(node.value)
     return assignments
 
@@ -54,7 +56,7 @@ class BaselineContractTests(unittest.TestCase):
         self.assertEqual(actions["quantum_engage"]["type"], "hold")
 
     def test_app_version_is_declared(self):
-        self.assertRegex(self.values["APP_VERSION"], r"^\d+\.\d+(?:\.\d+)?$")
+        self.assertRegex(APP_VERSION, r"^\d+\.\d+(?:\.\d+)?$")
 
 
 if __name__ == "__main__":
