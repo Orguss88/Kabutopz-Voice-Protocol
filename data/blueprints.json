@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "game_version": "4.10.x",
+  "blueprints": [],
+  "notes": "Populate only from verified in-game blueprint data; 4.11/Intersec rewards not yet verified."
+}
