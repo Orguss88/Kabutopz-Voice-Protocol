@@ -40,6 +40,7 @@ from keybind_modifiers import apply_modifiers, modifier_state
 from phrase_matcher import build_phrase_pairs
 from command_router import Command, execute_command
 from tts_service import build_speech_script, build_voice_listing_script
+from settings_store import read_settings, write_settings
 from app_config import (
     APP_DIR,
     SETTINGS_FILE,
@@ -673,14 +674,7 @@ class VoiceKeybindApp(tk.Tk):
 
     # -------------------- settings --------------------
     def _load_settings(self):
-        try:
-            if SETTINGS_FILE.exists():
-                data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-                if isinstance(data, dict):
-                    return data
-        except Exception:
-            pass
-        return {
+        defaults = {
             "theme": DEFAULT_THEME.copy(),
             "voice_feedback": True,
             "tts_volume": 80,
@@ -691,6 +685,7 @@ class VoiceKeybindApp(tk.Tk):
             "custom_actions": [],
             "phrases": DEFAULT_PHRASES.copy(),
         }
+        return read_settings(SETTINGS_FILE, defaults)
 
     def _load_theme(self):
         """Load a complete theme without overwriting a user's custom colors."""
@@ -773,7 +768,6 @@ class VoiceKeybindApp(tk.Tk):
 
     def _save_settings(self):
         try:
-            APP_DIR.mkdir(parents=True, exist_ok=True)
             self.settings["theme"] = self.theme
             self.settings["voice_feedback"] = bool(self.voice_feedback_var.get())
             self.settings["tts_volume"] = int(self.tts_volume_var.get())
@@ -787,10 +781,7 @@ class VoiceKeybindApp(tk.Tk):
             self.settings["phrases"] = self.phrases
             self.settings["keybinds"] = self.keybinds
             self.settings["custom_actions"] = self.custom_actions
-            SETTINGS_FILE.write_text(
-                json.dumps(self.settings, indent=2),
-                encoding="utf-8"
-            )
+            write_settings(SETTINGS_FILE, self.settings)
         except Exception:
             pass
 
