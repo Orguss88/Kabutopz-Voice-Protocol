@@ -37,6 +37,7 @@ from app_paths import resource_path
 from commodity_service import search_commodity, suggest_commodities
 from component_service import search_component, search_ship_weapon, suggest_components, suggest_ship_weapons
 from keybind_modifiers import apply_modifiers, modifier_state
+from phrase_matcher import build_phrase_pairs
 
 
 APP_DIR = Path.home() / ".star_citizen_voice_keybinds"
@@ -4767,14 +4768,8 @@ class VoiceKeybindApp(tk.Tk):
             self._speak(answer, force=True)
 
     def _build_phrase_matcher(self):
-        pairs = []
-        for action_id, phrases in self.phrases.items():
-            for phrase in phrases:
-                pairs.append((phrase, action_id))
-
-        # Prefer longer / more specific phrases.
-        pairs.sort(key=lambda x: len(x[0]), reverse=True)
-        return pairs
+        # Preserve the legacy phrase ordering while delegating to a pure module.
+        return build_phrase_pairs(self.phrases)
 
     @staticmethod
     def _audio_level(raw_audio):
