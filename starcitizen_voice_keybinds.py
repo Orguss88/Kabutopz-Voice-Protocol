@@ -39,6 +39,7 @@ from component_service import search_component, search_ship_weapon, suggest_comp
 from keybind_modifiers import apply_modifiers, modifier_state
 from phrase_matcher import build_phrase_pairs
 from command_router import Command, execute_command
+from tts_service import build_speech_script, build_voice_listing_script
 
 
 APP_DIR = Path.home() / ".star_citizen_voice_keybinds"
@@ -4281,11 +4282,7 @@ class VoiceKeybindApp(tk.Tk):
     def _refresh_tts_voices(self):
         """Load installed Windows System.Speech voices."""
         try:
-            ps = (
-                "Add-Type -AssemblyName System.Speech; "
-                "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
-                "$s.GetInstalledVoices() | ForEach-Object { $_.VoiceInfo.Name }"
-            )
+            ps = build_voice_listing_script()
             result = subprocess.run(
                 ["powershell", "-NoProfile", "-Command", ps],
                 capture_output=True,
@@ -4522,23 +4519,8 @@ class VoiceKeybindApp(tk.Tk):
             self._stop_tts()
 
             try:
-                safe_phrase = phrase.replace("'", "''")
-                volume = max(0, min(100, int(self.tts_volume_var.get())))
-                voice = self.tts_voice_var.get().strip()
-                safe_voice = voice.replace("'", "''")
-
-                voice_select = ""
-                if voice and voice != "Windows Default Voice":
-                    voice_select = (
-                        f"try {{ $s.SelectVoice('{safe_voice}') }} catch {{ }}; "
-                    )
-
-                ps = (
-                    "Add-Type -AssemblyName System.Speech; "
-                    "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
-                    f"$s.Volume = {volume}; "
-                    f"{voice_select}"
-                    f"$s.Speak('{safe_phrase}')"
+                ps = build_speech_script(
+                    phrase, self.tts_volume_var.get(), self.tts_voice_var.get()
                 )
 
                 proc = subprocess.Popen(
