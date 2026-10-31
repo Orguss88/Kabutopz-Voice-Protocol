@@ -40,23 +40,20 @@ from keybind_modifiers import apply_modifiers, modifier_state
 from phrase_matcher import build_phrase_pairs
 from command_router import Command, execute_command
 from tts_service import build_speech_script, build_voice_listing_script
-
-
-APP_DIR = Path.home() / ".star_citizen_voice_keybinds"
-SETTINGS_FILE = APP_DIR / "settings.json"
-COOLDOWN_SECONDS = 1.5
-APP_VERSION = "1.5"
-COMMAND_SAMPLE_RATE = 16000
-COMMAND_VOICE_THRESHOLD = 450
-COMMAND_TRAILING_VOICE_THRESHOLD = 160
-COMMAND_END_SILENCE_SECONDS = 0.45
-COMMAND_MAX_CAPTURE_SECONDS = 3.2
-COMMAND_PREROLL_CHUNKS = 8
-PAGE_ORDER = (
-    "VOICE PROTOCOL", "HOW TO", "CUSTOMIZE", "PHRASES", "KEYBINDS",
-    "CUSTOM WORDS", "COMPONENTS", "SHIP WEAPONS", "COMMODITIES", "MINING MODE", "SHIP FINDER",
-    "GUIDES", "ANNOUNCEMENTS", "CREDIT",
+from app_config import (
+    APP_DIR,
+    SETTINGS_FILE,
+    COOLDOWN_SECONDS,
+    APP_VERSION,
+    COMMAND_SAMPLE_RATE,
+    COMMAND_VOICE_THRESHOLD,
+    COMMAND_TRAILING_VOICE_THRESHOLD,
+    COMMAND_END_SILENCE_SECONDS,
+    COMMAND_MAX_CAPTURE_SECONDS,
+    COMMAND_PREROLL_CHUNKS,
+    PAGE_ORDER,
 )
+
 
 # Google speech-recognition locale used for the microphone.  These codes let
 # the recognizer listen for the player's language instead of English sounds.
